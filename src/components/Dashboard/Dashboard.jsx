@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import FirestoreService from '../../database/firestoreService';
 import { Link } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../database/Firebase';
+import { useAuth } from '../context/AuthContext'; // Adjust the import path as needed
+
 
 const Dashboard = () => {
     const [recentRecords, setRecentRecords] = useState([]);
     const [upcomingTasks, setUpcomingTasks] = useState([]);
+    const { currentUser } = useAuth(); // Get current user from context
 
     useEffect(() => {
         const fetchRecentRecords = async () => {
@@ -20,15 +25,27 @@ const Dashboard = () => {
         fetchRecentRecords();
         fetchUpcomingTasks();
     }, []);
-
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            // Redirect to login page or handle logout success
+        } catch (error) {
+            // Handle any errors here
+            console.error("Error signing out: ", error);
+        }
+    };
+    
     return (
         <div>
             <h2>Dashboard</h2>
-            <Link to="/data-entry">Go to Data Entry Form</Link>
+            {currentUser && currentUser.role === 'admin' && (
+                <Link to="/data-entry">Go to Data Entry Form</Link>
+            )}
+
             <Link to="/records">Go to Records</Link>
             <Link to="/tasks">Go to Task</Link>
             <Link to="/report-generator">Go to Reports</Link>
-
+            <button onClick={handleLogout}>Logout</button>
             <section>
                 <h3>Recent Activities</h3>
                 {recentRecords.length ? (
